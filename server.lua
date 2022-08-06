@@ -4,11 +4,12 @@
     Written by Andrew_7_1 with huge help from GitHub copilot, he's a really cool guy
 ]]
 
-local audio_manager = require('audio_manager').init('audio_dirs.txt')
+local audio_manager = require('audio_manager').init('audio_dirs.txt')  -- NIL CHECK!!!
 local logger = require('logger').new()
 
 local port = 7101 -- will be configurable later
 local modem = peripheral.find('modem')
+if not modem then error('No modem found') end
 modem.open(port)
 logger.info('Audio server started on port ' .. port)
 
@@ -31,7 +32,7 @@ while true do
         local track_info = audio_manager.get_track_info(message.index)
         if track_info then
             modem.transmit(replyChannel, port, {type = 'track_info', track_info = track_info})
-            logger.scuess('Track info sent')
+            logger.success('Track info sent')
         else
             modem.transmit(replyChannel, port, {type = 'track_info', track_info = {}})
             logger.warning('Track info request for invalid index: ' .. message.index)
