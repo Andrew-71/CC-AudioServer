@@ -1,5 +1,7 @@
 --[[
-    Class to manage audio tracks on different disks
+    Class to manage ComputerCraft (CC) audio tracks on different disks
+
+    Written by Andrew_7_1
 ]]
 
 local audio_manager = {}
@@ -34,14 +36,13 @@ audio_manager.init = function (dirs_file)
     local function load_audio_catalogue()
         local audio_catalogue = {}
         for _, dir in pairs(audio_dirs) do
-            local dir_catalogue = {}
-            for file in fs.list(dir) do
+            for _, file in pairs(fs.list(dir)) do
                 if file:find('.dfpwm') or file:find('.wav') then
                     local file_path = dir .. '/' .. file
                     local file_size = fs.getSize(file_path)
                     local file_title = file:sub(1, #file - #file:match('.*%.(.*)$'))
                     local file_extension = file:match('.*%.(.*)$')
-                    table.insert(dir_catalogue, {
+                    table.insert(audio_catalogue, {
                         ["filepath"] = file_path,
                         ["length"] = file_size / 6000,
                         ["title"] = file_title,
@@ -49,7 +50,6 @@ audio_manager.init = function (dirs_file)
                     })
                 end
             end
-            audio_catalogue[dir] = dir_catalogue
         end
         return audio_catalogue
     end
@@ -64,24 +64,32 @@ audio_manager.init = function (dirs_file)
         return self.audio_catalogue
     end
 
-    -- Tansmit part track through computercraft modem to another computer
-    function self.transmit_track_chunk(index, starting_second, length, port)
+
+    -- Get part of an audio file in the catalogue
+    function self.get_track_chunk(index, starting_second, length)
+        if index > #self.audio_catalogue then
+            return false
+        end
         local track = self.audio_catalogue[index]
-        local modem = peripheral.find('modem')
 
         local file = io.open(track.filepath, 'rb')
         if not file then
             return false
         end
+
         file:seek('set', starting_second * 6000)
         local chunk = file:read(length * 6000)
         file:close()
-        modem.transmit(port, port, chunk)
+
+        return chunk
     end
 
-    function self.transmit_track_details(index, port)
-        local modem = peripheral.find('modem')
-        modem.transmit(port, port, self.audio_catalogue[index])
+    -- More convenient way to get track info than using entire catalogue
+    function self.get_track_details(index)
+        if index > #self.audio_catalogue then
+            return false
+        end
+        return self.audio_catalogue[index]
     end
 
     return self

@@ -1,8 +1,14 @@
+
+
 local logger = {}
-logger.new = function(monitor_wrap)
+logger.init = function(monitor_wrap, scale)
     local self = {}
 
-    local monitor = monitor_wrap
+    local monitor = monitor_wrap or peripheral.find("monitor")
+    if not monitor then
+        error("No monitor found")
+    end
+    monitor.setTextScale(scale or 0.5)
     local log_colours = {
         ['log'] = colours.white,
         ['info'] = colours.lightBlue,
